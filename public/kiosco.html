@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiosco – Turnero</title>
+  <link rel="stylesheet" href="css/kiosco.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Contenido principal -->
+  <main class="content">
+
+    <!-- Nombre / marca -->
+    <h1 class="brand-name">Kai,</h1>
+
+    <!-- Subtítulo -->
+    <p class="subtitle">presiona el botón para<br>obtener tu turno</p>
+
+    <!-- Botón generar turno -->
+    <button id="btnGenerar" class="btn-generar">
+      <!-- Ícono ticket SVG -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+           aria-hidden="true">
+        <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0
+                 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
+        <path d="M13 5v2M13 17v2M13 11v2"/>
+      </svg>
+      Generar Turno
+    </button>
+
+    <!-- Tarjeta de resultado -->
+    <div id="result" class="result-card" role="status" aria-live="polite">
+      <p class="result-label">Su número de turno es</p>
+      <p id="turnNumber" class="result-number"></p>
+      <p id="turnTime"   class="result-time"></p>
+      <div class="result-download">
+        <!-- Ícono descarga -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Descargando ticket…
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Contador de cola (pie de pantalla) -->
+  <p class="pending-info">
+    Turnos en espera: <strong id="pendingCount">0</strong>
+  </p>
+
+  <script>
+    const socket = io();
+
+    // ── Formato de número ──────────────────────────────────────
+    const fmt = n => String(n).padStart(3, '0');
+
+    // ── Estado del servidor ───────────────────────────────────
+    socket.on('state', ({ pendingCount }) => {
+      document.getElementById('pendingCount').textContent = pendingCount ?? 0;
+    });
+
+    // ── Generar turno ─────────────────────────────────────────
+    document.getElementById('btnGenerar').addEventListener('click', () => {
+      const btn = document.getElementById('btnGenerar');
+      btn.disabled = true;
+
+      socket.emit('generate-turn', (res) => {
+        if (res.error) {
+          alert('Error: ' + res.error);
+          btn.disabled = false;
+          return;
+        }
+
+        const turn    = res.turn;
+        const now     = new Date();
+        const dateStr = now.toLocaleDateString('es-AR',  { day:'2-digit', month:'2-digit', year:'numeric' });
+        const timeStr = now.toLocaleTimeString('es-AR',  { hour:'2-digit', minute:'2-digit' });
+
+        // Mostrar tarjeta de resultado
+        const resultEl = document.getElementById('result');
+        document.getElementById('turnNumber').textContent = fmt(turn);
+        document.getElementById('turnTime').textContent   = `${dateStr}  ·  ${timeStr}`;
+        resultEl.classList.add('visible');
+
+        // Descargar PDF
+        generateTicket(turn, dateStr, timeStr);
+
+        // Ocultar y re-habilitar después de 5 segundos
+        setTimeout(() => {
+          resultEl.classList.remove('visible');
+          btn.disabled = false;
+        }, 5000);
+      });
+    });
+
+    // ── Generar ticket PDF (80 mm) ────────────────────────────
+    function generateTicket(turn, dateStr, timeStr) {
+      // Se inicializa aquí para no bloquear el script si la CDN no cargó aún
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation : 'portrait',
+        unit        : 'mm',
+        format      : [80, 110],   // 80 mm de ancho × 110 mm alto
+      });
+
+      const W = 80;
+
+      // Cabecera azul
+      doc.setFillColor(30, 64, 175);
+      doc.rect(0, 0, W, 20, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(255, 255, 255);
+      doc.text('SISTEMA DE TURNOS', W / 2, 13, { align: 'center' });
+
+      // Etiqueta
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(110, 110, 110);
+      doc.text('Su numero de turno es:', W / 2, 30, { align: 'center' });
+
+      // Número grande
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(58);
+      doc.setTextColor(30, 64, 175);
+      doc.text(fmt(turn), W / 2, 63, { align: 'center' });
+
+      // Separador
+      doc.setDrawColor(210, 210, 210);
+      doc.setLineWidth(0.3);
+      doc.line(8, 70, W - 8, 70);
+
+      // Fecha y hora
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(110, 110, 110);
+      doc.text(`Fecha: ${dateStr}`, W / 2, 79, { align: 'center' });
+      doc.text(`Hora:  ${timeStr}`, W / 2, 85, { align: 'center' });
+
+      // Separador
+      doc.line(8, 91, W - 8, 91);
+
+      // Pie
+      doc.setFontSize(8);
+      doc.setTextColor(140, 140, 140);
+      doc.text('Espere a ser llamado.', W / 2, 99, { align: 'center' });
+      doc.text('Gracias por su visita.', W / 2, 105, { align: 'center' });
+
+      doc.save(`turno-${fmt(turn)}.pdf`);
+    }
+  </script>
+</body>
+</html>

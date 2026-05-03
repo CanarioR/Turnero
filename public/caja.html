@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caja – Turnero</title>
+  <link rel="stylesheet" href="/css/caja.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+  <!-- ── Modal: selección de caja ─────────────────────────────── -->
+  <div id="modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>Bienvenido</h2>
+        <p>Seleccione el número de su caja</p>
+      </div>
+      <div class="modal-body">
+        <div id="cajaGrid" class="caja-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Header ────────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-brand">
+      <img src="/src/KidZania.png" alt="Logo">
+      <span>Sistema de Turnos</span>
+    </div>
+    <div class="header-right">
+      <button class="btn-cambiar"
+        onclick="localStorage.removeItem('cajaNum'); localStorage.removeItem('attendedCount'); location.reload();">
+        Cambiar caja
+      </button>
+      <div class="header-clock">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <polyline points="12 7 12 12 15 15"/>
+        </svg>
+        <span id="clock"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main ──────────────────────────────────────────────────── -->
+  <main>
+
+    <!-- Caja hero -->
+    <div class="caja-hero">
+      <p class="caja-hero-label">Caja Actual</p>
+      <div class="caja-hero-title-row">
+        <div class="caja-hero-line"></div>
+        <h1 id="cajaTitle">CAJA —</h1>
+        <div class="caja-hero-line"></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+
+      <!-- Turnos atendidos -->
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="2" width="6" height="4" rx="1"/>
+            <path d="M16 4h1a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2h1"/>
+            <line x1="9" y1="12" x2="15" y2="12"/>
+            <line x1="9" y1="16" x2="13" y2="16"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <p class="stat-label">Turnos Atendidos</p>
+          <p id="attended" class="stat-value">0</p>
+        </div>
+      </div>
+
+      <!-- Turno en atención -->
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <p class="stat-label">Turno en Atención</p>
+          <p id="turnDisplay" class="stat-value orange">—</p>
+          <p id="cajaLabel" class="stat-sub"></p>
+        </div>
+      </div>
+
+      <!-- Turnos en espera -->
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="8" r="3"/>
+            <path d="M2 20c0-3 2.5-5.5 7-5.5s7 2.5 7 5.5"/>
+            <circle cx="17" cy="8" r="3"/>
+            <path d="M22 20c0-3-2.5-5.5-5-5.5"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <p class="stat-label">Turnos en Espera</p>
+          <p id="pendingCount" class="stat-value">0</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Botón siguiente turno -->
+    <div class="btn-wrap">
+      <button id="btnNext" disabled>
+        <span class="btn-icon">›</span>
+        Siguiente Turno
+      </button>
+    </div>
+
+    <!-- Mensaje de estado -->
+    <div id="message"></div>
+
+  </main>
+
+  <script>
+    const fmt = n => String(n).padStart(3, '0');
+
+    let cajaNum       = null;
+    let attendedCount = 0;
+    let pendingLocal  = 0;
+
+    // ── Reloj ─────────────────────────────────────────────────
+    function updateClock() {
+      document.getElementById('clock').textContent =
+        new Date().toLocaleTimeString('es-MX', {
+          hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+        });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ── Generar botones de caja (1-10) ────────────────────────
+    const grid = document.getElementById('cajaGrid');
+    for (let i = 1; i <= 10; i++) {
+      const btn = document.createElement('button');
+      btn.textContent = i;
+      btn.className = 'caja-btn';
+      btn.addEventListener('click', () => selectCaja(i));
+      grid.appendChild(btn);
+    }
+
+    const socket = io();
+
+    // ── Selección de caja ─────────────────────────────────────
+    function selectCaja(n) {
+      cajaNum = n;
+      localStorage.setItem('cajaNum', n);
+      document.getElementById('modal').classList.add('hidden');
+      document.getElementById('cajaTitle').textContent = `CAJA ${n}`;
+      document.getElementById('btnNext').disabled = (pendingLocal === 0);
+    }
+
+    // ── Restaurar sesión guardada ──────────────────────────────
+    const savedCaja     = localStorage.getItem('cajaNum');
+    const savedAttended = parseInt(localStorage.getItem('attendedCount') || '0', 10);
+    if (savedCaja) {
+      attendedCount = savedAttended;
+      document.getElementById('attended').textContent = attendedCount;
+      selectCaja(parseInt(savedCaja, 10));
+    }
+
+    // ── Estado del servidor ───────────────────────────────────
+    socket.on('state', ({ pendingCount }) => {
+      pendingLocal = pendingCount ?? 0;
+      document.getElementById('pendingCount').textContent = pendingLocal;
+      document.getElementById('btnNext').disabled = (pendingLocal === 0 || !cajaNum);
+    });
+
+    // ── Llamar siguiente turno ────────────────────────────────
+    document.getElementById('btnNext').addEventListener('click', () => {
+      if (!cajaNum) return;
+
+      const btn = document.getElementById('btnNext');
+      btn.disabled = true;
+
+      socket.emit('next-turn', { caja: cajaNum }, (res) => {
+        if (res.error) {
+          showMessage(res.error, 'error');
+          btn.disabled = (pendingLocal === 0);
+          return;
+        }
+
+        attendedCount++;
+        localStorage.setItem('attendedCount', attendedCount);
+        document.getElementById('attended').textContent = attendedCount;
+
+        const displayEl = document.getElementById('turnDisplay');
+        displayEl.textContent = fmt(res.turn);
+        displayEl.classList.add('slide-in');
+        setTimeout(() => displayEl.classList.remove('slide-in'), 400);
+
+        document.getElementById('cajaLabel').textContent = `CAJA ${res.caja}`;
+        showMessage(`Turno ${fmt(res.turn)} llamado — Caja ${res.caja}`, 'success');
+      });
+    });
+
+    // ── Helpers ───────────────────────────────────────────────
+    function showMessage(text, type) {
+      const el = document.getElementById('message');
+      el.textContent = text;
+      el.className = type;
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => { el.className = ''; }, 3500);
+    }
+  </script>
+</body>
+</html>

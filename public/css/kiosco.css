@@ -1,0 +1,270 @@
+/* ============================================================
+   KIOSCO – Hoja de estilos
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,700;0,900;1,900&display=swap');
+
+/* ── Variables ──────────────────────────────────────────────── */
+:root {
+  --maroon:        #9E0B33;
+  --maroon-dark:   #7a0827;
+  --maroon-mid:    #b50e3a;
+  --orange:        #F28F0D;
+  --orange-light:  #f9aa45;
+  --orange-dark:   #c47209;
+  --white:         #FFFFFF;
+  --white-dim:     rgba(255, 255, 255, 0.75);
+  --white-muted:   rgba(255, 255, 255, 0.45);
+
+  /* Cambia el nombre del archivo por el tuyo */
+  --bg-image: url('../src/KidZania.png');
+}
+
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Body / fondo ───────────────────────────────────────────── */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--maroon);
+  background-image: var(--bg-image);
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  position: relative;
+}
+
+/* Overlay oscuro sobre la imagen de fondo */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(61, 7, 20, 0.85) 0%,
+    rgba(107, 16, 36, 0.78) 60%,
+    rgba(80, 12, 28, 0.60) 100%
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── Contenido principal ────────────────────────────────────── */
+.content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 2rem 2.5rem;
+  max-width: 620px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* ── Nombre / marca ─────────────────────────────────────────── */
+.brand-name {
+  font-size: clamp(4.5rem, 13vw, 9rem);
+  font-weight: 900;
+  font-style: italic;
+  color: var(--orange);
+  line-height: 0.95;
+  margin-bottom: 1rem;
+  animation: slide-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+  text-shadow: 0 4px 32px rgba(245, 134, 10, 0.35);
+}
+
+/* ── Subtítulo ──────────────────────────────────────────────── */
+.subtitle {
+  font-size: clamp(1.1rem, 2.8vw, 1.75rem);
+  color: var(--white-dim);
+  font-weight: 400;
+  line-height: 1.45;
+  max-width: 440px;
+  margin-bottom: 3rem;
+  animation: slide-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+}
+
+/* ── Botón generar turno ────────────────────────────────────── */
+.btn-generar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: var(--orange);
+  color: var(--maroon-dark);
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+  font-weight: 800;
+  padding: 1.25rem 3.8rem;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  min-width: 320px;
+  letter-spacing: 0.01em;
+  box-shadow: 0 6px 28px rgba(245, 134, 10, 0.45);
+  transition: transform 0.14s ease, background 0.18s ease, box-shadow 0.18s ease;
+  animation:
+    slide-up   0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both,
+    btn-pulse  3.5s ease-in-out 1.8s infinite;
+}
+
+.btn-generar svg {
+  width: 1.5em;
+  height: 1.5em;
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.btn-generar:hover {
+  background: var(--orange-light);
+  transform: scale(1.055);
+  box-shadow: 0 10px 40px rgba(245, 134, 10, 0.6);
+}
+
+.btn-generar:hover svg {
+  transform: rotate(-8deg) scale(1.1);
+}
+
+.btn-generar:active {
+  transform: scale(0.96);
+  box-shadow: 0 3px 12px rgba(245, 134, 10, 0.35);
+}
+
+.btn-generar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none;
+  animation: none;
+}
+
+/* ── Tarjeta de resultado ───────────────────────────────────── */
+.result-card {
+  display: none;
+  margin-top: 2.5rem;
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 28px;
+  padding: 2rem 3.5rem;
+  width: 100%;
+  max-width: 380px;
+}
+
+.result-card.visible {
+  display: block;
+  animation: pop-in 0.48s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.result-label {
+  color: var(--white-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.result-number {
+  font-size: clamp(5rem, 15vw, 7.5rem);
+  font-weight: 900;
+  color: var(--orange);
+  line-height: 1;
+  text-shadow: 0 2px 24px rgba(245, 134, 10, 0.4);
+}
+
+.result-time {
+  color: var(--white-muted);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.result-download {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.2rem;
+  color: #6EE7B7;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.result-download svg {
+  animation: bounce 1.2s ease-in-out infinite;
+}
+
+/* ── Contador de espera (pie) ───────────────────────────────── */
+.pending-info {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  color: var(--white-muted);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  animation: fade-in 1s ease-out 1s both;
+}
+
+.pending-info strong {
+  color: var(--orange);
+  font-weight: 800;
+  font-size: 1.15rem;
+}
+
+/* ── Keyframes ──────────────────────────────────────────────── */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pop-in {
+  0%   { transform: scale(0.5);  opacity: 0; }
+  65%  { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes btn-pulse {
+  0%, 100% { box-shadow: 0 6px 28px rgba(245, 134, 10, 0.45); }
+  50%       { box-shadow: 0 6px 42px rgba(245, 134, 10, 0.75), 0 0 0 14px rgba(245, 134, 10, 0.08); }
+}
+
+@keyframes deco-breathe {
+  0%, 100% { opacity: 1;   transform: translateY(-50%) scale(1); }
+  50%       { opacity: 0.7; transform: translateY(-50.5%) scale(1.004); }
+}
+
+@keyframes chevron-shimmer {
+  0%, 100% { filter: brightness(1); }
+  50%       { filter: brightness(1.08); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .deco-chevron { width: 28%; }
+  .btn-generar  { min-width: 260px; padding: 1.1rem 2.8rem; }
+  .result-card  { padding: 1.5rem 2rem; }
+}

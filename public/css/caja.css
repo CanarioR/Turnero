@@ -1,0 +1,361 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  --carmin:      #9E0B33;
+  --carmin-dark: #7a0827;
+  --orange:      #F28F0D;
+  --orange-dark: #c47209;
+  --white:       #FFFFFF;
+  --gray-bg:     #F4F4F6;
+  --gray-border: #E2E2E8;
+  --text-dark:   #1A1A2E;
+  --text-muted:  #9A9AA8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--white);
+  min-height: 100vh;
+}
+
+/* ── HEADER ─────────────────────────────────────────────── */
+.header {
+  background: var(--carmin);
+  padding: 0 2rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-brand img {
+  height: 36px;
+  width: auto;
+}
+
+.header-brand span {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: white;
+  text-transform: uppercase;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.header-clock {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.header-clock svg {
+  width: 18px;
+  height: 18px;
+  stroke: rgba(255, 255, 255, 0.8);
+}
+
+.btn-cambiar {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-cambiar:hover {
+  color: white;
+  border-color: white;
+}
+
+/* ── MAIN ────────────────────────────────────────────────── */
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 2rem;
+}
+
+/* ── CAJA HERO ───────────────────────────────────────────── */
+.caja-hero {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.caja-hero-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.caja-hero-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.caja-hero-line {
+  flex: 1;
+  height: 2px;
+  background: var(--carmin);
+  opacity: 0.25;
+  border-radius: 2px;
+}
+
+#cajaTitle {
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  font-weight: 900;
+  color: var(--carmin);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ── STATS GRID ──────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--gray-bg);
+  border: 1px solid var(--gray-border);
+  border-radius: 1.25rem;
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.stat-icon {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  background: var(--carmin);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon svg {
+  width: 28px;
+  height: 28px;
+  stroke: white;
+  fill: none;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.stat-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900;
+  color: var(--text-dark);
+  line-height: 1;
+}
+
+.stat-value.orange {
+  color: var(--orange);
+}
+
+.stat-sub {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--carmin);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── BUTTON ──────────────────────────────────────────────── */
+.btn-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+#btnNext {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: var(--orange);
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 1rem;
+  padding: 1.25rem 3rem;
+  width: 100%;
+  max-width: 520px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+#btnNext:hover:not(:disabled) {
+  background: var(--orange-dark);
+}
+
+#btnNext:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+#btnNext:disabled {
+  background: var(--gray-border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 2.5px solid rgba(255, 255, 255, 0.65);
+  border-radius: 50%;
+  font-size: 1.5rem;
+  padding-bottom: 1px;
+}
+
+/* ── STATUS MESSAGE ──────────────────────────────────────── */
+#message {
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  margin-top: 1rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+#message.success {
+  background: #d1fae5;
+  color: #065f46;
+  opacity: 1;
+}
+
+#message.error {
+  background: #fee2e2;
+  color: #991b1b;
+  opacity: 1;
+}
+
+/* ── MODAL ───────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-box {
+  background: white;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.modal-header {
+  background: var(--carmin);
+  padding: 1.5rem 2rem;
+  color: white;
+  text-align: center;
+}
+
+.modal-header h2 {
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+.modal-header p {
+  font-size: 0.875rem;
+  opacity: 0.75;
+  margin-top: 0.25rem;
+}
+
+.modal-body {
+  padding: 1.5rem 2rem 2rem;
+}
+
+.caja-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.65rem;
+}
+
+.caja-btn {
+  aspect-ratio: 1;
+  background: var(--gray-bg);
+  border: 1px solid var(--gray-border);
+  border-radius: 0.75rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.caja-btn:hover {
+  background: var(--carmin);
+  color: white;
+  border-color: var(--carmin);
+  transform: scale(1.06);
+}
+
+/* ── ANIMATIONS ──────────────────────────────────────────── */
+@keyframes slide-in {
+  from { transform: translateY(-8px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.slide-in { animation: slide-in 0.3s ease-out; }

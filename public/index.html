@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turnero</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 min-h-screen flex items-center justify-center p-6">
+  <div class="max-w-2xl w-full">
+
+    <div class="text-center mb-12">
+      <h1 class="text-white text-5xl font-black tracking-tight">TURNERO</h1>
+      <p class="text-slate-400 text-lg mt-2">Sistema de Gestión de Turnos en Tiempo Real</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+
+      <a href="/kiosco"
+         class="group block bg-blue-700 hover:bg-blue-600 text-white rounded-2xl p-8 text-center shadow-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-blue-900/50">
+        <div class="text-5xl mb-4">🎫</div>
+        <h2 class="text-2xl font-black">KIOSCO</h2>
+        <p class="text-blue-300 mt-2 text-sm">Generar turnos · Imprime ticket PDF</p>
+      </a>
+
+      <a href="/caja"
+         class="group block bg-emerald-700 hover:bg-emerald-600 text-white rounded-2xl p-8 text-center shadow-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-emerald-900/50">
+        <div class="text-5xl mb-4">🖥️</div>
+        <h2 class="text-2xl font-black">CAJA</h2>
+        <p class="text-emerald-300 mt-2 text-sm">Panel del empleado · Llamar turnos</p>
+      </a>
+
+      <a href="/pantalla"
+         class="group block bg-purple-700 hover:bg-purple-600 text-white rounded-2xl p-8 text-center shadow-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-purple-900/50">
+        <div class="text-5xl mb-4">📺</div>
+        <h2 class="text-2xl font-black">PANTALLA</h2>
+        <p class="text-purple-300 mt-2 text-sm">Display público · Tiempo real</p>
+      </a>
+
+    </div>
+
+    <p class="text-slate-600 text-center text-sm mt-10">
+      Cualquier dispositivo en la misma red WiFi puede acceder usando la IP de este equipo
+    </p>
+
+  </div>
+</body>
+</html>

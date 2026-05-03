@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantalla – Turnero</title>
+  <link rel="stylesheet" href="css/pantalla.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+  <!-- ══════════════ HEADER ══════════════ -->
+  <header class="header">
+
+    <!-- Logo + título -->
+    <div class="header-logo">
+      <img src="src/KidZania.png" alt="Logo">
+      <span class="header-title">Sistema de Turnos</span>
+    </div>
+
+    <!-- Sonido + reloj -->
+    <div class="header-right">
+      <button id="soundBtn" class="sound-btn" title="Activar sonido">
+        <svg id="iconMute" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <line x1="23" y1="9" x2="17" y2="15"/>
+          <line x1="17" y1="9" x2="23" y2="15"/>
+        </svg>
+        <svg id="iconSound" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             style="display:none">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        </svg>
+        <span id="soundLabel">Clic para activar sonido</span>
+      </button>
+
+      <div class="header-divider"></div>
+      <div id="clock" class="clock"></div>
+    </div>
+  </header>
+
+  <!-- ══════════════ LAYOUT PRINCIPAL ══════════════ -->
+  <div class="main-layout">
+
+    <!-- ── Panel principal (blanco) ── -->
+    <div id="panelMain" class="panel-main">
+
+      <!-- Estado vacío -->
+      <div id="noCalls" class="no-calls">
+        <p>Esperando primer turno…</p>
+      </div>
+
+      <!-- Display turno activo -->
+      <div id="callDisplay" class="call-display hidden">
+
+        <div class="current-area">
+          <p class="current-label">Turno en Curso</p>
+          <p id="currentNum" class="current-number"></p>
+          <div class="caja-row">
+            <div class="caja-line"></div>
+            <p id="currentCaja" class="caja-label"></p>
+            <div class="caja-line"></div>
+          </div>
+        </div>
+
+        <div class="history-section">
+          <p class="history-label">Turnos Anteriores</p>
+          <div id="history" class="history-grid"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Panel lateral derecho (En espera) ── -->
+    <aside class="panel-aside">
+      <div class="aside-header">
+        <p class="aside-title">En Espera</p>
+        <div class="aside-count">
+          <span id="totalPending" class="aside-count-num">0</span><br>
+          <span class="aside-count-label">turno(s)</span>
+        </div>
+      </div>
+      <div id="pendingList" class="aside-body"></div>
+      <div class="aside-footer">
+        <p>Actualización en tiempo real</p>
+  </div>
+
+  <script>
+    const socket = io();
+    const fmt    = n => String(n).padStart(3, '0');
+
+    let audioCtx      = null;
+    let soundEnabled  = false;
+    let lastDisplayed = null;
+
+    // ── Reloj ─────────────────────────────────────────────────
+    const clockEl = document.getElementById('clock');
+    const tick = () => {
+      clockEl.textContent = new Date().toLocaleTimeString('es-AR', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+    };
+    setInterval(tick, 1000);
+    tick();
+
+    // ── Sonido ────────────────────────────────────────────────
+    const soundBtn   = document.getElementById('soundBtn');
+    const iconMute   = document.getElementById('iconMute');
+    const iconSound  = document.getElementById('iconSound');
+    const soundLabel = document.getElementById('soundLabel');
+
+    function enableSound() {
+      if (soundEnabled) return;
+      try {
+        audioCtx     = new (window.AudioContext || window.webkitAudioContext)();
+        soundEnabled = true;
+        soundBtn.classList.add('active');
+        iconMute.style.display  = 'none';
+        iconSound.style.display = '';
+        soundLabel.textContent  = 'Sonido activado';
+      } catch (e) {}
+    }
+
+    soundBtn.addEventListener('click', enableSound);
+    document.addEventListener('click', enableSound, { once: true });
+
+    // ── Socket ────────────────────────────────────────────────
+    socket.on('state',       (data) => updateDisplay(data));
+    socket.on('turn-called', ()     => { playNotification(); flashScreen(); });
+
+    // ── Actualizar pantalla ───────────────────────────────────
+    function updateDisplay({ pendingTurns, pendingCount, calledTurns }) {
+      document.getElementById('totalPending').textContent = pendingCount ?? 0;
+      renderPending(pendingTurns || []);
+
+      if (!calledTurns || calledTurns.length === 0) {
+        document.getElementById('noCalls').style.display = '';
+        document.getElementById('callDisplay').classList.add('hidden');
+        return;
+      }
+
+      document.getElementById('noCalls').style.display = 'none';
+      document.getElementById('callDisplay').classList.remove('hidden');
+
+      const current = calledTurns[calledTurns.length - 1];
+      const history = calledTurns.slice(0, -1).reverse();
+
+      const numEl = document.getElementById('currentNum');
+      if (current.turn !== lastDisplayed) {
+        lastDisplayed     = current.turn;
+        numEl.textContent = fmt(current.turn);
+        numEl.classList.remove('number-pop');
+        void numEl.offsetWidth;
+        numEl.classList.add('number-pop');
+      }
+      document.getElementById('currentCaja').textContent = `CAJA ${current.caja}`;
+
+      const histEl = document.getElementById('history');
+      histEl.innerHTML = '';
+      history.slice(0, 3).forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'hist-card card-slide';
+        div.style.animationDelay = `${idx * 60}ms`;
+        div.innerHTML = `
+          <p class="hist-num">${fmt(item.turn)}</p>
+          <p class="hist-caja">Caja ${item.caja}</p>
+          <div class="hist-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+        `;
+        histEl.appendChild(div);
+      });
+    }
+
+    // ── Cola en espera ────────────────────────────────────────
+    function renderPending(turns) {
+      const el = document.getElementById('pendingList');
+      el.innerHTML = '';
+
+      if (turns.length === 0) {
+        el.innerHTML = `
+          <div class="aside-empty">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none"
+                 stroke="white" stroke-width="1.4"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <p>Sin turnos<br>en espera</p>
+          </div>`;
+        return;
+      }
+
+      turns.slice(0, 4).forEach((turn, idx) => {
+        const div = document.createElement('div');
+        div.className = 'pending-chip' + (idx === 0 ? ' first' : '');
+        div.textContent = fmt(turn);
+        el.appendChild(div);
+      });
+    }
+
+    // ── Flash de pantalla ─────────────────────────────────────
+    function flashScreen() {
+      const panel = document.getElementById('panelMain');
+      panel.classList.remove('screen-flash');
+      void panel.offsetWidth;
+      panel.classList.add('screen-flash');
+    }
+
+    // ── Sonido ding-dong ──────────────────────────────────────
+    function playNotification() {
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      [
+        { freq: 880,  start: 0,    dur: 0.28 },
+        { freq: 1109, start: 0.31, dur: 0.40 },
+      ].forEach(({ freq, start, dur }) => {
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type            = 'sine';
+        osc.frequency.value = freq;
+        const t = audioCtx.currentTime + start;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.35, t + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        osc.start(t);
+        osc.stop(t + dur + 0.05);
+      });
+    }
+  </script>
+</body>
+</html>
+  </script>
+</body>
+</html>
